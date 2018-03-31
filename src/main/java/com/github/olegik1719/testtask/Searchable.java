@@ -14,7 +14,8 @@ public interface Searchable {
      * @param substring for search
      * @return collection of position
      */
-    Collection<Integer> searchAll(String substring);
+    Collection<Index> searchAll(String substring);
+
 
     /**
      * Search all entries
@@ -22,11 +23,26 @@ public interface Searchable {
      * @param num entries for out
      * @return collection of positions
      */
-    Collection<Integer> searchFirsts(String substring, int num);
+    Collection<Index> searchFirsts(String substring, int num);
 
-    int searchFirst(String substring);
+
+    /**
+     * Search all entries
+     * @param substring for search
+     * @return position
+     */
+    default Index searchFirst(String substring){
+        return searchFirsts(substring,1).iterator().next();
+    }
 
     default boolean contains(String substring){
-        return searchFirst(substring) > 0;
+        return searchFirst(substring) != null;
+    }
+
+
+
+    int charAt(Index index);
+
+    interface Index{
     }
 }
