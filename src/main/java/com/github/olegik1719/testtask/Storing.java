@@ -8,9 +8,8 @@ import java.util.Map;
 
 public interface Storing<T extends Searchable> {
     Storing addToStore(InputStream is);
-    Map<T,Collection> search(String substring);
-    Map<T,Object> searchFirst(String substring);
-    Map<T,Collection> SearchFirsts(String substring, int num);
-    Collection<T> contains();
-    OutputStream getFromStore(T text);
+    Map<T,Collection<? extends Searchable.Index>> searchAll(String substring);
+    Map<T,? extends Searchable.Index> searchFirst(String substring);
+    Map<T,Collection<? extends Searchable.Index>> searchFirsts(String substring, int num);
+    Collection<T> contains(String substring);
 }

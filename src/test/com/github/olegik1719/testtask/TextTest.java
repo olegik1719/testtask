@@ -16,7 +16,8 @@ public class TextTest {
 
     @Before
     public void setUp() throws Exception {
-        String string = "Hello World!";
+        //String string = "Hello World!";
+        String string = "asdasdaasdasfasdfsdf";
         InputStream stream = new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
         textCurrent = new Text(stream);
         //textCurrent;
@@ -26,6 +27,10 @@ public class TextTest {
     public void getText() {
         OutputStream out = textCurrent.getText();
         System.out.println(out.toString());
+    }
 
+    @Test
+    public void searchAll() {
+        System.out.println(textCurrent.searchAll("asd"));
     }
 }
