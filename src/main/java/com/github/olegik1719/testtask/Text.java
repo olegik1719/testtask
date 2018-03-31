@@ -77,8 +77,6 @@ public class Text implements Searchable {
         }
         if (substring.length() < 3) throw new RuntimeException("Length for search must be more than 3!");
 
-        //TODO write right condition
-
         for (int i = 0; i < text.size() && result.size() < count ; i++) {
             for (int j = 0; j < text.get(i).length() && result.size() < count; j++){
 
