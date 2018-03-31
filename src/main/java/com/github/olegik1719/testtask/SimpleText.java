@@ -26,7 +26,12 @@ public class SimpleText implements Searchable{
         return search(substring,num);
     }
 
-    private Collection<Index> search(String substring, int count){
+
+    private Collection<Index> search(String substring, int count) {
+        return simpleSearch(substring,count);
+    }
+
+    private Collection<Index> simpleSearch(String substring, int count){
         if (count <= 0){
             count = text.length();
         }

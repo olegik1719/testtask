@@ -2,9 +2,7 @@ package com.github.olegik1719.testtask;
 
 import lombok.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -12,7 +10,7 @@ public class Text implements Searchable {
     //private static final int BUFFER_SIZE = 256;
     private static final int BUFFER_SIZE = 2;
     //private static final long MAX_STRING_SIZE = Integer.MAX_VALUE;
-    private static final long MAX_STRING_SIZE = 3;
+    private static final long MAX_STRING_SIZE = 7;
     private LinkedList<StringBuilder> text;
 
     public Text(InputStream inputStream) throws IOException {
@@ -30,7 +28,7 @@ public class Text implements Searchable {
                 charSequence = new StringBuilder();
                 text.addLast(charSequence);
             }
-            charSequence.append(buffer,0,readChars);
+            if (readChars != -1) charSequence.append(buffer,0,readChars);
         }while (readChars == BUFFER_SIZE);
     }
 
@@ -64,6 +62,18 @@ public class Text implements Searchable {
         StringBuilder currentString = text.get(numString);
         if (posInString >= currentString.length()) return -1;
         return currentString.charAt(posInString);
+    }
+
+    public OutputStream getText(){
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            for (StringBuilder sb: text) {
+                outputStream.write(sb.toString().getBytes());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return outputStream;
     }
 
     @Getter
