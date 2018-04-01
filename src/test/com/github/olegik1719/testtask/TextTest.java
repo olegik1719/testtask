@@ -3,9 +3,7 @@ package com.github.olegik1719.testtask;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
@@ -16,11 +14,9 @@ public class TextTest {
 
     @Before
     public void setUp() throws Exception {
-        //String string = "Hello World!";
-        String string = "asdasdaasdasfasdfsdf";
-        InputStream stream = new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8));
+        File input = new File ("res/input.test");
+        InputStream stream = new FileInputStream(input);
         textCurrent = new Text(stream);
-        //textCurrent;
     }
 
     @Test

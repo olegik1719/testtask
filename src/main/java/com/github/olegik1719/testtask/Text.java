@@ -5,15 +5,14 @@ import lombok.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.stream.Collectors;
 
-public class Text implements Searchable {
-    //private static final int BUFFER_SIZE = 256;
+public class Text {
     private static final int BUFFER_SIZE = 2;
-    //private static final long MAX_STRING_SIZE = Integer.MAX_VALUE;
-    private static final long MAX_STRING_SIZE = 7;
+    private static final long MAX_STRING_SIZE = 8;
     private ArrayList<StringBuilder> text;
+    private final Position BEGIN_TEXT;
+    private final Position END_TEXT;
 
     public Text(InputStream inputStream) throws IOException {
         InputStreamReader reader = new InputStreamReader(inputStream);
@@ -32,24 +31,27 @@ public class Text implements Searchable {
             }
             if (readChars != -1) charSequence.append(buffer,0,readChars);
         }while (readChars == BUFFER_SIZE);
+        BEGIN_TEXT = new Position(0,0);
+        END_TEXT = new Position(text.size()-1,text.get(text.size()-1).length()-1);
     }
 
-    @Override
-    public Collection<Index> searchAll(String substring) {
+    public Collection<Position> searchAll(String substring) {
         return search(substring,-1);
     }
 
-    @Override
-    public Collection<Index> searchFirsts(String substring, int num) {
+    public Collection<Position> searchFirsts(String substring, int num) {
         return search(substring,num);
     }
 
-    @Override
-    public int charAt(Index index) {
-        return index instanceof Position? charAt((Position) index) : -1;
+    public Position searchFirst(String substring){
+        return searchFirsts(substring,1).iterator().next();
     }
 
-    private Collection<Index> search(String substring, int count){
+    public boolean contains(String substring){
+        return searchFirst(substring) != null;
+    }
+
+    private Collection<Position> search(String substring, int count){
         return simpleSearch(substring,count);
     }
 
@@ -63,12 +65,32 @@ public class Text implements Searchable {
         if (currentString < text.size() - 1)
             return new Position(++currentString,0);
 
-        return null;
+        return position;
     }
 
+    private Position getPrevPos(Position position){
+        int currentString = position.getNumString();
+        int posInString = position.getPosInString();
 
-    private Collection<Index> simpleSearch(String substring, int count){
-        Collection<Index> result;
+        if (posInString > 0)
+            return new Position(currentString, --posInString);
+
+        if (currentString > 0)
+            return new Position(++currentString,0);
+
+        return position;
+    }
+
+    private boolean isEndText(Position position){
+        return position.equals(END_TEXT);
+    }
+
+    private boolean isBeginText(Position position){
+        return position.equals(BEGIN_TEXT);
+    }
+
+    private Collection<Position> simpleSearch(String substring, int count){
+        Collection<Position> result;
         if (count <= 0){
             result = new ArrayList<>();
             count = Integer.MAX_VALUE;
@@ -84,7 +106,7 @@ public class Text implements Searchable {
                 int k = 0;
 
                 while (k < substring.length()
-                        && currentPosition != null
+                        && isEndText(currentPosition)
                         && charAt(currentPosition) == substring.charAt(k)){
                     k++;
                     currentPosition = getNextPos(currentPosition);
@@ -95,31 +117,62 @@ public class Text implements Searchable {
                 }
             }
         }
-
-//        for (int i = 0; i<=text.length() - substring.length() && result.size()<count; i++){
-//            int j = 0;
-//            while (j<substring.length()
-//                    && i+j<text.length()
-//                    && text.charAt(i+j)==text.charAt(j)
-//                    ){
-//                j++;
-//            }
-//            if (j == substring.length())
-//                result.add(new SimpleText.Position(i));
-//        }
         return result;
-        //return found;
     }
 
-    public int charAt(Position position){
+    private int charAt(Position position){
         return charAt(position.getNumString(),position.getPosInString());
     }
 
-    public int charAt(int numString, int posInString){
+    private int charAt(int numString, int posInString){
         if (numString >= text.size()) return -1;
         StringBuilder currentString = text.get(numString);
         if (posInString >= currentString.length()) return -1;
         return currentString.charAt(posInString);
+    }
+
+    private Position getNextPos(Position position, int count){
+        //TODO without loop Algorithm
+        for (int i = 0; i < count && !isEndText(position); i++) {
+            position = getNextPos(position);
+        }
+        return position;
+    }
+
+    private Position getPrevPos(Position position, int count){
+        //TODO without loop Algorithm
+        for (int i = 0; i < count && !isBeginText(position); i++) {
+            position = getPrevPos(position);
+        }
+        return position;
+    }
+
+    public Collection<CharSequence> getResults(String substring, int radius, int count){
+        return searchAll(substring).stream()
+                .map(s->getResult(s,substring.length(),getPrevPos(s,radius),getNextPos(s,substring.length()+radius)))
+                .collect(Collectors.toList());
+        //return null;
+    }
+
+    private StringBuilder getResult(Position found, int substrLength, Position begin, Position end ){
+        StringBuilder result = new StringBuilder();
+        int printed = -1;
+        Position current = begin;
+        while (!current.equals(end)){
+            if (printed == substrLength){
+                result.append(']');
+            }
+            if (current.equals(found)){
+                result.append('[');
+                printed++;
+            }
+            result.append(charAt(current));
+            if (printed > -1 && printed < substrLength + 1){
+                printed++;
+            }
+            current = getNextPos(current);
+        }
+        return result;
     }
 
     public OutputStream getText(){
@@ -136,23 +189,35 @@ public class Text implements Searchable {
 
 
     @Getter
-    @Setter(AccessLevel.PRIVATE)
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public class Position implements Index{
+    public class Position{
 
         /**
          * Number of string in List;
          */
-        private int numString;
+        private final int numString;
 
         /**
          * Number of symbol in List;
          */
-        private int posInString;
+        private final int posInString;
 
         @Override
         public String toString() {
             return "[ " + numString + "; " + posInString + "]";
+        }
+
+        public boolean equals(Object o){
+            return o instanceof Position
+                    && ((Position) o).numString == numString
+                    && ((Position) o).posInString == posInString
+                    ;
+        }
+
+        public boolean equals(Position o){
+            return  o.numString == numString
+                 && o.posInString == posInString
+                 ;
         }
     }
 }

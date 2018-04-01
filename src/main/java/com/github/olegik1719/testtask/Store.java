@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class Store implements Storing<Text>{
+public class Store{
 
     private List<Text> store;
 
@@ -17,8 +17,7 @@ public class Store implements Storing<Text>{
         store = new ArrayList<>();
     }
 
-    @Override
-    public Storing addToStore(InputStream is) {
+    public Store addToStore(InputStream is) {
         Text text;
         try {
             text = new Text(is);
@@ -30,23 +29,18 @@ public class Store implements Storing<Text>{
         return this;
     }
 
-    @Override
-    public Map<Text, Collection<? extends Searchable.Index>> searchAll(String substring) {
+    public Map<Text, Collection<Text.Position>> searchAll(String substring) {
         return store.stream().collect(Collectors.toMap(text-> text, text -> text.searchAll(substring)));
     }
 
-    @Override
-    public Map<Text, ? extends Searchable.Index> searchFirst(String substring) {
+    public Map<Text, Text.Position> searchFirst(String substring) {
         return store.stream().collect(Collectors.toMap(text-> text, text -> text.searchFirst(substring)));
     }
 
-    @Override
-    public Map<Text, Collection<? extends Searchable.Index>> searchFirsts(String substring, int num) {
+    public Map<Text, Collection<Text.Position>> searchFirsts(String substring, int num) {
         return store.stream().collect(Collectors.toMap(text-> text, text -> text.searchFirsts(substring,num)));
     }
 
-
-    @Override
     public Collection<Text> contains(String substring) {
         return store.stream().filter(text -> text.contains(substring)).collect(Collectors.toList());
     }
