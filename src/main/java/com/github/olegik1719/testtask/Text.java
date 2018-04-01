@@ -35,11 +35,9 @@ public class Text {
     public Text(InputStream inputStream) throws IOException {
         InputStreamReader reader = new InputStreamReader(inputStream);
         char[] buffer = new char[BUFFER_SIZE];
-        //int readChars = BUFFER_SIZE;
         text = new ArrayList<>();
         text.add(new StringBuilder());
         int readChars;
-        //while (readChars == BUFFER_SIZE){
         do{
             readChars = reader.read(buffer);
             StringBuilder charSequence = text.get(text.size()-1);
@@ -197,6 +195,20 @@ public class Text {
         return new Result(prefix,substring, postfix);
     }
 
+    public CharSequence getBegin(int count){
+        Position current = BEGIN_TEXT;
+        StringBuilder result = new StringBuilder(count);
+        while (count > 0 && !isEndText(current)){
+            result.append(charAt(current));
+            count--;
+            current = getNextPos(current);
+        }
+        return result;
+    }
+
+    public CharSequence getBegin(){
+        return getBegin(10);
+    }
     public OutputStream getText(){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
@@ -212,7 +224,7 @@ public class Text {
 
     @Getter
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    public class Position{
+    private class Position{
 
         /**
          * Number of string in List;
@@ -229,6 +241,7 @@ public class Text {
             return "[ " + numString + "; " + posInString + "]";
         }
 
+        @Override
         public boolean equals(Object o){
             return o instanceof Position
                     && ((Position) o).numString == numString
@@ -236,7 +249,7 @@ public class Text {
                     ;
         }
 
-        public boolean equals(Position o){
+        private boolean equals(Position o){
             return  o.numString == numString
                  && o.posInString == posInString
                  ;

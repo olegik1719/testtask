@@ -3,49 +3,86 @@ package com.github.olegik1719.testtask;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Store{
 
-    private List<Text> store;
+    //private List<Text> store;
+    private Map<Integer,Text> store;
+    private int last = 0;
+
 
     public Store(){
-        store = new ArrayList<>();
+        store = new HashMap<>();
     }
 
-    public Store addToStore(InputStream is) {
+    synchronized public int addToStore(InputStream is) {
         Text text;
         try {
             text = new Text(is);
         } catch (IOException e){
 
-            return this;
+            //return this;
+            return -1;
         }
-        store.add(text);
-        return this;
+        //return this;
+        return addToStore(text);
     }
 
-    public Map<Text, Collection<Result>> searchAll(String substring) {
-        return store.stream().collect(Collectors.toMap(text-> text, text -> text.findAll(substring)));
+    synchronized private int addToStore(Text text){
+        store.put(last++,text);
+        return store.size();
     }
 
-    public Map<Text, Result> searchFirst(String substring) {
-        return store.stream().collect(Collectors.toMap(text-> text, text -> text.findFirst(substring)));
+    public Map<CharSequence, Collection<Result>> searchAll(CharSequence substring) {
+        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
+                key -> store.get(key).findAll(substring)));
     }
 
-    public Map<Text, Collection<Result>> searchFirsts(String substring, int num) {
-        return store.stream().collect(Collectors.toMap(text-> text, text -> text.findFirsts(substring,num)));
+    public Map<CharSequence, Result> searchFirst(CharSequence substring) {
+        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
+                key -> store.get(key).findFirst(substring)));
     }
 
-    public Collection<Text> contains(String substring) {
-        return store.stream().filter(text -> text.contains(substring)).collect(Collectors.toList());
+    public Map<CharSequence, Collection<Result>> searchFirsts(CharSequence substring, int num) {
+        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
+                key -> store.get(key).findFirsts(substring,num)));
     }
 
-    public OutputStream getFromStore(Text text) {
-        return text.getText();
+    public Collection<CharSequence> contains(CharSequence substring, int count) {
+        int size = store.size();
+        Collection<CharSequence> result = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(i).append(store.get(i).getBegin(count));
+            result.add(sb);
+        }
+        return result;
+    }
+
+    public Collection<CharSequence> contains(CharSequence substring) {
+        return contains(substring,10);
+    }
+
+    public Collection<CharSequence> list (int count){
+        int size = store.size();
+        Collection<CharSequence> result = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(i).append(store.get(i).getBegin(count));
+            result.add(sb);
+        }
+        return result;
+    }
+
+    public Collection<CharSequence> list(){
+        return list(10);
+    }
+
+    public OutputStream getFromStore(int text) {
+        if (text < 0 || text >= store.size())
+            return store.get(text).getText();
+        else return null;
     }
 }
