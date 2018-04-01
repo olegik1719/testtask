@@ -5,9 +5,27 @@ import lombok.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 
 public class Text {
+
+    private static final Logger log = Logger.getLogger(Text.class.getName());
+    static {
+        try {
+            FileHandler fh = new FileHandler(Text.class.getName() + ".log");
+            log.addHandler(fh);
+            log.setLevel(Level.ALL);
+            fh.setFormatter(new SimpleFormatter());
+            log.setUseParentHandlers(false);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
     private static final int BUFFER_SIZE = 2;
     private static final long MAX_STRING_SIZE = 8;
     private ArrayList<StringBuilder> text;
@@ -30,13 +48,15 @@ public class Text {
                 text.add(charSequence);
             }
             if (readChars != -1) charSequence.append(buffer,0,readChars);
+
+            log.log(Level.FINE,"Readed: "+String.valueOf(buffer));
+
         }while (readChars == BUFFER_SIZE);
         BEGIN_TEXT = new Position(0,0);
         END_TEXT = new Position(text.size()-1,text.get(text.size()-1).length()-1);
     }
 
     public Collection<Position> searchAll(String substring) {
-        //System.out.println("SearchALL");
         return search(substring,-1);
     }
 
