@@ -36,6 +36,7 @@ public class Text {
     }
 
     public Collection<Position> searchAll(String substring) {
+        //System.out.println("SearchALL");
         return search(substring,-1);
     }
 
@@ -98,15 +99,13 @@ public class Text {
             result = new ArrayList<>(count + 1);
         }
         if (substring.length() < 3) throw new RuntimeException("Length for search must be more than 3!");
-
         for (int i = 0; i < text.size() && result.size() < count ; i++) {
             for (int j = 0; j < text.get(i).length() && result.size() < count; j++){
 
                 Position currentPosition = new Position(i,j);
                 int k = 0;
-
                 while (k < substring.length()
-                        && isEndText(currentPosition)
+                        && !isEndText(currentPosition)
                         && charAt(currentPosition) == substring.charAt(k)){
                     k++;
                     currentPosition = getNextPos(currentPosition);
@@ -148,7 +147,7 @@ public class Text {
     }
 
     public Collection<CharSequence> getResults(String substring, int radius, int count){
-        return searchAll(substring).stream()
+        return search(substring,count).stream()
                 .map(s->getResult(s,substring.length(),getPrevPos(s,radius),getNextPos(s,substring.length()+radius)))
                 .collect(Collectors.toList());
         //return null;
@@ -166,7 +165,7 @@ public class Text {
                 result.append('[');
                 printed++;
             }
-            result.append(charAt(current));
+            result.append((char)charAt(current));
             if (printed > -1 && printed < substrLength + 1){
                 printed++;
             }

@@ -27,6 +27,8 @@ public class TextTest {
 
     @Test
     public void searchAll() {
-        System.out.println(textCurrent.searchAll("asd"));
+        String substring = "asd";
+        //System.out.println(textCurrent.searchAll(substring));
+        System.out.println(textCurrent.getResults(substring,2,3));
     }
 }
