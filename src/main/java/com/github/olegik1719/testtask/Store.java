@@ -1,5 +1,6 @@
 package com.github.olegik1719.testtask;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -80,9 +81,8 @@ public class Store{
         return list(10);
     }
 
-    public OutputStream getFromStore(int text) {
-        if (text < 0 || text >= store.size())
-            return store.get(text).getText();
-        else return null;
+    public ByteArrayOutputStream getFromStore(int index) {
+        Text text = store.get(index);
+        return text == null? null : text.getText();
     }
 }

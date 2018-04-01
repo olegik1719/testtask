@@ -26,8 +26,8 @@ public class Text {
         }
     }
 
-    private static final int BUFFER_SIZE = 2;
-    private static final long MAX_STRING_SIZE = 8;
+    private static final int BUFFER_SIZE = 256;
+    private static final int MAX_STRING_SIZE = 20*BUFFER_SIZE;
     private ArrayList<StringBuilder> text;
     private final Position BEGIN_TEXT;
     private final Position END_TEXT;
@@ -209,7 +209,7 @@ public class Text {
     public CharSequence getBegin(){
         return getBegin(10);
     }
-    public OutputStream getText(){
+    public ByteArrayOutputStream getText(){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             for (StringBuilder sb: text) {

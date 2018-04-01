@@ -3,6 +3,10 @@
 
 # Log file
 *.log
+*.log.?
+
+# Lock file
+*.lck
 
 # BlueJ files
 *.ctxt
