@@ -56,23 +56,23 @@ public class Text {
         END_TEXT = new Position(text.size()-1,text.get(text.size()-1).length()-1);
     }
 
-    public Collection<Position> searchAll(String substring) {
-        return search(substring,-1);
+    public Collection<Result> findAll(CharSequence substring){
+        return getResults(substring, 2, -1);
     }
 
-    public Collection<Position> searchFirsts(String substring, int num) {
-        return search(substring,num);
+    public Collection<Result> findFirsts(CharSequence substring, int num){
+        return getResults(substring, 2, num);
     }
 
-    public Position searchFirst(String substring){
-        return searchFirsts(substring,1).iterator().next();
+    public Result findFirst(CharSequence substring){
+        return getResults(substring, 2, 1).iterator().next();
     }
 
-    public boolean contains(String substring){
-        return searchFirst(substring) != null;
+    public boolean contains(CharSequence substring){
+        return findFirst(substring) != null;
     }
 
-    private Collection<Position> search(String substring, int count){
+    private Collection<Position> search(CharSequence substring, int count){
         return simpleSearch(substring,count);
     }
 
@@ -110,7 +110,7 @@ public class Text {
         return position.equals(BEGIN_TEXT);
     }
 
-    private Collection<Position> simpleSearch(String substring, int count){
+    private Collection<Position> simpleSearch(CharSequence substring, int count){
         Collection<Position> result;
         if (count <= 0){
             result = new ArrayList<>();
@@ -166,23 +166,26 @@ public class Text {
         return position;
     }
 
-    public Collection<CharSequence> getResults(String substring, int radius, int count){
+    private Collection<Result> getResults(CharSequence substring, int radius, int count){
         return search(substring,count).stream()
                 .map(s->getResult(s,substring.length(),getPrevPos(s,radius),getNextPos(s,substring.length()+radius)))
                 .collect(Collectors.toList());
         //return null;
     }
 
-    private StringBuilder getResult(Position found, int substrLength, Position begin, Position end ){
-        StringBuilder result = new StringBuilder();
+    private Result getResult(Position found, int substrLength, Position begin, Position end ){
+        StringBuilder prefix = new StringBuilder();
+        StringBuilder substring = new StringBuilder();
+        StringBuilder postfix = new StringBuilder();
         int printed = -1;
+        StringBuilder result = prefix;
         Position current = begin;
         while (!current.equals(end)){
             if (printed == substrLength){
-                result.append(']');
+                result = postfix;
             }
             if (current.equals(found)){
-                result.append('[');
+                result=substring;
                 printed++;
             }
             result.append((char)charAt(current));
@@ -191,7 +194,7 @@ public class Text {
             }
             current = getNextPos(current);
         }
-        return result;
+        return new Result(prefix,substring, postfix);
     }
 
     public OutputStream getText(){

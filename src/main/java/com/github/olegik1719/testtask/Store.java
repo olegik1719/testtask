@@ -29,16 +29,16 @@ public class Store{
         return this;
     }
 
-    public Map<Text, Collection<Text.Position>> searchAll(String substring) {
-        return store.stream().collect(Collectors.toMap(text-> text, text -> text.searchAll(substring)));
+    public Map<Text, Collection<Result>> searchAll(String substring) {
+        return store.stream().collect(Collectors.toMap(text-> text, text -> text.findAll(substring)));
     }
 
-    public Map<Text, Text.Position> searchFirst(String substring) {
-        return store.stream().collect(Collectors.toMap(text-> text, text -> text.searchFirst(substring)));
+    public Map<Text, Result> searchFirst(String substring) {
+        return store.stream().collect(Collectors.toMap(text-> text, text -> text.findFirst(substring)));
     }
 
-    public Map<Text, Collection<Text.Position>> searchFirsts(String substring, int num) {
-        return store.stream().collect(Collectors.toMap(text-> text, text -> text.searchFirsts(substring,num)));
+    public Map<Text, Collection<Result>> searchFirsts(String substring, int num) {
+        return store.stream().collect(Collectors.toMap(text-> text, text -> text.findFirsts(substring,num)));
     }
 
     public Collection<Text> contains(String substring) {
