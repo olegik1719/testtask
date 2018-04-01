@@ -108,7 +108,7 @@ public class Text {
         return position.equals(BEGIN_TEXT);
     }
 
-    private Collection<Position> simpleSearch(CharSequence substring, int count){
+    private Collection<Position> simpleSearch(CharSequence substring, int count) throws RuntimeException{
         Collection<Position> result;
         if (count <= 0){
             result = new ArrayList<>();
@@ -116,7 +116,11 @@ public class Text {
         }else {
             result = new ArrayList<>(count + 1);
         }
-        if (substring.length() < 3) throw new RuntimeException("Length for search must be more than 3!");
+        if (substring.length() < 3) {
+            //throw new RuntimeException("Length for search must be more than 3!");
+            log.log(Level.WARNING, " Length for search must be more than 2! ");
+            return result;
+        }
         for (int i = 0; i < text.size() && result.size() < count ; i++) {
             for (int j = 0; j < text.get(i).length() && result.size() < count; j++){
 
@@ -209,6 +213,7 @@ public class Text {
     public CharSequence getBegin(){
         return getBegin(10);
     }
+
     public ByteArrayOutputStream getText(){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {

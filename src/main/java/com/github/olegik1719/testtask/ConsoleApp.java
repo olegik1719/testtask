@@ -2,6 +2,7 @@ package com.github.olegik1719.testtask;
 
 import java.io.*;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -63,13 +64,13 @@ public class ConsoleApp {
         mainOS.println("Example: + fileUpload.txt");
         mainOS.println("-<ID> -- download file from base. 2 parameters: ID file and path to new file");
         mainOS.println("Example: - 3 fileDownload.txt");
-        mainOS.println("?* -- search in file. ? -- return only first result.");
+        mainOS.println("?* -- search in file. ? -- return all (up to MAXINT) results.");
         mainOS.println("\t  ?<int> return first <int> results");
-        mainOS.println("\t  ?? return all (up to MAXINT) results.");
+        //mainOS.println("\t  ?? return all (up to MAXINT) results.");
         mainOS.println("1 parameter: substring");
-        mainOS.println("Examples:\n\t? substring\n\t\t -- Search first result");
+        mainOS.println("Examples:\n\t?1 substring\n\t\t -- Search first result");
         mainOS.println("\t ?3 substring\n\t\t -- Search 3 first results");
-        mainOS.println("\t ?? substring\n\t\t -- Search all results");
+        mainOS.println("\t ? substring\n\t\t -- Search all results");
         mainOS.println("l -- list loaded files. Maybe 1 parameter: substring");
         mainOS.println("Examples:\n\tl\n\t\t -- list all files");
         mainOS.println("\t l substring\n\t\t -- list all files, that contain substring");
@@ -165,12 +166,52 @@ public class ConsoleApp {
 
         if (full.charAt(0) == ' '){
             mainOS.println("Search: " + full);
-            mainOS.println(full.subSequence(1,full.length()));
-            log.log(Level.FINE,"cmd: search; without parameters");
+            //mainOS.println(full.subSequence(1,full.length()));
+            String substring = getOther(full);
+            log.log(Level.FINE,"cmd: search substring: " + substring);
+            Map<CharSequence, Collection<Result>> result = store.searchAll(substring);
+            if (result.isEmpty()){
+                log.log(Level.WARNING,"Search result is empty for " + substring);
+                mainOS.println("Search result is empty for " + substring);
+            }else {
+                for (CharSequence key: result.keySet()){
+                    Collection<Result> keyResult = result.get(key);
+                    if (keyResult != null && keyResult.size() > 0){
+                        mainOS.println(key + ":\n");
+                        for (Result keyres:keyResult){
+                            System.out.println(keyres);
+                        }
+                    }
+                }
+            }
         }else {
-            String digit = full.substring(1,full.indexOf(' '));
+            String digit = getFirstParam(full);
             //NumberFormatException
-            int count = Integer.parseInt(digit);
+            try {
+                int count = Integer.parseInt(digit);
+                log.log(Level.FINE, "count = " + count);
+                String substring = getOther(full);
+                Map<CharSequence, Collection<Result>> result = store.searchAll(substring);
+                if (result.isEmpty()){
+                    log.log(Level.WARNING,"Search result is empty for " + substring);
+                    mainOS.println("Search result is empty for " + substring);
+                }else {
+                    for (CharSequence key: result.keySet()){
+                        Collection<Result> keyResult = result.get(key);
+                        if (keyResult != null && keyResult.size() > 0){
+                            mainOS.println(key + ":\n");
+                            for (Result keyres:keyResult){
+                                System.out.println(keyres);
+                            }
+                        }
+                    }
+                }
+            }catch (NumberFormatException e){
+                mainOS.println("It isn't right number");
+                log.log(Level.INFO, "It isn't right number");
+                help();
+            }
+
             mainOS.println("Search: " + full);
         }
 
