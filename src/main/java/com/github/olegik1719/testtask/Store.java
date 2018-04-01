@@ -3,7 +3,6 @@ package com.github.olegik1719.testtask;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -18,7 +17,7 @@ public class Store{
         store = new HashMap<>();
     }
 
-    synchronized public int addToStore(InputStream is) {
+    public int addToStore(InputStream is) {
         Text text;
         try {
             text = new Text(is);
@@ -32,8 +31,8 @@ public class Store{
     }
 
     synchronized private int addToStore(Text text){
-        store.put(last++,text);
-        return store.size();
+        store.put(last,text);
+        return last++;
     }
 
     public Map<CharSequence, Collection<Result>> searchAll(CharSequence substring) {
@@ -75,6 +74,10 @@ public class Store{
             result.add(sb);
         }
         return result;
+    }
+
+    public boolean isEmpty(){
+        return store.isEmpty();
     }
 
     public Collection<CharSequence> list(){

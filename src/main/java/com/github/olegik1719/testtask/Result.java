@@ -23,6 +23,18 @@ public class Result {
 
     @Override
     public String toString() {
-        return getPrefix() + "[" + getSubstring() + "]" + getPostfix();
+        return toString("[","]");
+    }
+
+    public String toString(CharSequence beforeSubstring, CharSequence afterSubstring){
+        return getPrefix()
+                + beforeSubstring
+                + getSubstring()
+                + afterSubstring
+                + getPostfix();
+    }
+
+    public String toString(CharSequence split) {
+        return toString(split,split);
     }
 }

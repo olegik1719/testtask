@@ -1,6 +1,7 @@
 package com.github.olegik1719.testtask;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.Scanner;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -11,10 +12,10 @@ public class ConsoleApp {
     private static Store store;
     private static PrintStream mainOS = System.out;
     private static InputStream mainIS = System.in;
-    private static final Logger log = Logger.getLogger(Text.class.getName());
+    private static final Logger log = Logger.getLogger(ConsoleApp.class.getName());
     static {
         try {
-            FileHandler fh = new FileHandler(Text.class.getName() + ".log");
+            FileHandler fh = new FileHandler(ConsoleApp.class.getName() + ".log");
             log.addHandler(fh);
             log.setLevel(Level.ALL);
             fh.setFormatter(new SimpleFormatter());
@@ -160,6 +161,8 @@ public class ConsoleApp {
             help();
             return;
         }
+        log.log(Level.INFO,"cmd: search; parameters: " + full);
+
         if (full.charAt(0) == ' '){
             mainOS.println("Search: " + full);
             mainOS.println(full.subSequence(1,full.length()));
@@ -173,16 +176,57 @@ public class ConsoleApp {
 
     }
 
-    private static void list(CharSequence full){
+    private static void list(String full){
         if (full.length() == 0) {
             help();
+            log.log(Level.INFO,"cmd: list; without parameters");
+            if (!store.isEmpty()) {
+                mainOS.println("Texts in store:");
+                store.list().forEach(mainOS::println);
+            }else {
+                mainOS.println("Store is empty now!");
+                log.log(Level.WARNING,"Store is empty now!");
+            }
             return;
         }
-        mainOS.println("list: " + full.toString());
+        log.log(Level.INFO,"cmd: list; parameters: " + full);
+        if (full.charAt(1) == ' '){
+            String substring = getOther(full);
+            if (substring.length() == 0) {
+                log.log(Level.INFO,"list, substring is empty");
+                if (!store.isEmpty()) {
+                    mainOS.println("Texts in store:");
+                    store.list().forEach(mainOS::println);
+                }else {
+                    mainOS.println("Store is empty now!");
+                    log.log(Level.WARNING,"Store is empty now!");
+                }
+            }else {
+                log.log(Level.INFO,"list, look for: \"" + substring + "\"");
+                if (!store.isEmpty()) {
+                    Collection<CharSequence> result = store.contains(substring);
+                    if (!result.isEmpty()) {
+                        mainOS.println("Texts in store:");
+                        result.forEach(mainOS::println);
+                        log.log(Level.INFO,"Found: " + result.size() + " texts.");
+                    }else{
+                        mainOS.println("Substring \"" + substring + "\" isn't found in texts!" );
+                        log.log(Level.WARNING,"Substring \"" + substring + "\" isn't found in texts!" );
+                    }
+                }else {
+                    mainOS.println("Store is empty now!");
+                    log.log(Level.WARNING,"Store is empty now!");
+                }
+            }
+        }else{
+            help();
+        }
+        mainOS.println("list: " + full);
     }
 
     private static void exit (){
         mainOS.println("Exit... ");
+        log.log(Level.INFO, "Exit");
         System.exit(0);
     }
 
