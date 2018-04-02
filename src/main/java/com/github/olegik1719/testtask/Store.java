@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Store{
 
@@ -36,27 +35,53 @@ public class Store{
     }
 
     public Map<CharSequence, Collection<Result>> searchAll(CharSequence substring) {
-        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
-                key -> store.get(key).findAll(substring)));
+        Map<CharSequence, Collection<Result>> result = new HashMap<>();
+        for (int key:store.keySet()){
+            Collection<Result> keyResult = store.get(key).findAll(substring);
+            if (!keyResult.isEmpty()){
+                result.put(new StringBuilder(""+key+": ").append(store.get(key).getBegin()),keyResult);
+            }
+        }
+        return result;
+//        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
+//                key -> store.get(key).findAll(substring)));
     }
 
     public Map<CharSequence, Result> searchFirst(CharSequence substring) {
-        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
-                key -> store.get(key).findFirst(substring)));
+        Map<CharSequence, Result> result = new HashMap<>();
+        for (int key:store.keySet()){
+            Result keyResult = store.get(key).findFirst(substring);
+            if (keyResult != null){
+                result.put(new StringBuilder(""+key+": ").append(store.get(key).getBegin()),keyResult);
+            }
+        }
+        return result;
+//        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
+//                key -> store.get(key).findFirst(substring)));
     }
 
     public Map<CharSequence, Collection<Result>> searchFirsts(CharSequence substring, int num) {
-        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
-                key -> store.get(key).findFirsts(substring,num)));
+        Map<CharSequence, Collection<Result>> result = new HashMap<>();
+        for (int key:store.keySet()){
+            Collection<Result> keyResult = store.get(key).findFirsts(substring, num);
+            if (!keyResult.isEmpty()){
+                result.put(new StringBuilder(""+key+": ").append(store.get(key).getBegin()),keyResult);
+            }
+        }
+        return result;
+//        return store.keySet().stream().collect(Collectors.toMap(key-> store.get(key).getBegin(),
+//                key -> store.get(key).findFirsts(substring,num)));
     }
 
     public Collection<CharSequence> contains(CharSequence substring, int count) {
         int size = store.size();
         Collection<CharSequence> result = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(i).append(store.get(i).getBegin(count));
-            result.add(sb);
+            if (store.get(i).contains(substring)) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(i).append(": ").append(store.get(i).getBegin(count));
+                result.add(sb);
+            }
         }
         return result;
     }
@@ -70,18 +95,18 @@ public class Store{
         Collection<CharSequence> result = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
             StringBuilder sb = new StringBuilder();
-            sb.append(i).append(store.get(i).getBegin(count));
+            sb.append(i).append(": ").append(store.get(i).getBegin(count));
             result.add(sb);
         }
         return result;
     }
 
-    public boolean isEmpty(){
-        return store.isEmpty();
-    }
-
     public Collection<CharSequence> list(){
         return list(10);
+    }
+
+    public boolean isEmpty(){
+        return store.isEmpty();
     }
 
     public ByteArrayOutputStream getFromStore(int index) {

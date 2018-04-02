@@ -26,7 +26,7 @@ public class ConsoleApp {
         }
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         //mainIS = System.in;
         Scanner sc = new Scanner(mainIS);
         //mainOS = System.out;
@@ -62,9 +62,9 @@ public class ConsoleApp {
         mainOS.println("{+|-*|?*|l|e|h} <parameter(s)>:");
         mainOS.println("+ -- upload file to base. Parameter is path to file");
         mainOS.println("Example: + fileUpload.txt");
-        mainOS.println("-<ID> -- download file from base. 2 parameters: ID file and path to new file");
-        mainOS.println("Example: - 3 fileDownload.txt");
-        mainOS.println("?* -- search in file. ? -- return all (up to MAXINT) results.");
+        mainOS.println("-<ID> -- download file from base. Parameters: ID file and path to new file");
+        mainOS.println("Example: -3 fileDownload.txt");
+        mainOS.println("?* -- search in files. \n\t? -- return all (up to MAXINT) results.");
         mainOS.println("\t  ?<int> return first <int> results");
         //mainOS.println("\t  ?? return all (up to MAXINT) results.");
         mainOS.println("1 parameter: substring");
@@ -150,6 +150,10 @@ public class ConsoleApp {
                 mainOS.println("I/O exception");
                 log.log(Level.SEVERE, "I/O exception " + e.getMessage());
                 help();
+            } catch (NullPointerException e){
+                mainOS.println("Check input parameters. ");
+                log.log(Level.SEVERE, "NullPointerException " + e.getMessage());
+                help();
             }
 //        }else {
 //            help();
@@ -177,10 +181,11 @@ public class ConsoleApp {
                 for (CharSequence key: result.keySet()){
                     Collection<Result> keyResult = result.get(key);
                     if (keyResult != null && keyResult.size() > 0){
-                        mainOS.println(key + ":\n");
+                        mainOS.println(key + ":");
                         for (Result keyres:keyResult){
-                            System.out.println(keyres);
+                            mainOS.println(keyres);
                         }
+                        mainOS.println();
                     }
                 }
             }
@@ -191,7 +196,7 @@ public class ConsoleApp {
                 int count = Integer.parseInt(digit);
                 log.log(Level.FINE, "count = " + count);
                 String substring = getOther(full);
-                Map<CharSequence, Collection<Result>> result = store.searchAll(substring);
+                Map<CharSequence, Collection<Result>> result = store.searchFirsts(substring,count);
                 if (result.isEmpty()){
                     log.log(Level.WARNING,"Search result is empty for " + substring);
                     mainOS.println("Search result is empty for " + substring);
@@ -199,9 +204,9 @@ public class ConsoleApp {
                     for (CharSequence key: result.keySet()){
                         Collection<Result> keyResult = result.get(key);
                         if (keyResult != null && keyResult.size() > 0){
-                            mainOS.println(key + ":\n");
-                            for (Result keyres:keyResult){
-                                System.out.println(keyres);
+                            mainOS.println(key + ":");
+                            for (Result keyRes:keyResult){
+                                System.out.println(keyRes);
                             }
                         }
                     }
@@ -212,14 +217,14 @@ public class ConsoleApp {
                 help();
             }
 
-            mainOS.println("Search: " + full);
+            //mainOS.println("Search: " + full);
         }
 
     }
 
     private static void list(String full){
         if (full.length() == 0) {
-            help();
+            //help();
             log.log(Level.INFO,"cmd: list; without parameters");
             if (!store.isEmpty()) {
                 mainOS.println("Texts in store:");
@@ -231,7 +236,7 @@ public class ConsoleApp {
             return;
         }
         log.log(Level.INFO,"cmd: list; parameters: " + full);
-        if (full.charAt(1) == ' '){
+        if (full.charAt(0) == ' '){
             String substring = getOther(full);
             if (substring.length() == 0) {
                 log.log(Level.INFO,"list, substring is empty");
@@ -262,7 +267,7 @@ public class ConsoleApp {
         }else{
             help();
         }
-        mainOS.println("list: " + full);
+        //mainOS.println("list: " + full);
     }
 
     private static void exit (){
@@ -271,14 +276,22 @@ public class ConsoleApp {
         System.exit(0);
     }
 
+
+
     private static String getFirstParam(String parameters){
         int border = parameters.indexOf(' ');
         if (border == -1) return parameters;
         return parameters.substring(0,border);
     }
 
-    static String getOther(String parameters){
+    private static String getOther(String parameters){
         String first = getFirstParam(parameters);
-        return parameters.substring(first.length() + 1);
+        try {
+            return parameters.substring(first.length() + 1);
+        }catch (StringIndexOutOfBoundsException e){
+            log.log(Level.WARNING, "getOther. input: " + parameters +" StringIndexOutOfBoundsException");
+            return null;
+        }
+
     }
 }

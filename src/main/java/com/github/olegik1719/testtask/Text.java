@@ -5,6 +5,7 @@ import lombok.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +27,7 @@ public class Text {
         }
     }
 
-    private static final int BUFFER_SIZE = 256;
+    private static final int BUFFER_SIZE = 1024;
     private static final int MAX_STRING_SIZE = 20*BUFFER_SIZE;
     private ArrayList<StringBuilder> text;
     private final Position BEGIN_TEXT;
@@ -63,7 +64,9 @@ public class Text {
     }
 
     public Result findFirst(CharSequence substring){
-        return getResults(substring, 2, 1).iterator().next();
+        Collection<Result> result = getResults(substring, 2, 1);
+        Iterator<Result> iterator = result.iterator();
+        return iterator.hasNext()? iterator.next():null;
     }
 
     public boolean contains(CharSequence substring){
@@ -203,9 +206,12 @@ public class Text {
         Position current = BEGIN_TEXT;
         StringBuilder result = new StringBuilder(count);
         while (count > 0 && !isEndText(current)){
-            result.append(charAt(current));
+            result.append((char) charAt(current));
             count--;
             current = getNextPos(current);
+        }
+        if (count == 0 && !isEndText(current)){
+            result.append("...");
         }
         return result;
     }
