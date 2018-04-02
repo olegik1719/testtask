@@ -56,15 +56,15 @@ public class Text {
     }
 
     public Collection<Result> findAll(CharSequence substring){
-        return getResults(substring, 2, -1);
+        return getResults(substring, -1);
     }
 
     public Collection<Result> findFirsts(CharSequence substring, int num){
-        return getResults(substring, 2, num);
+        return getResults(substring, num);
     }
 
     public Result findFirst(CharSequence substring){
-        Collection<Result> result = getResults(substring, 2, 1);
+        Collection<Result> result = getResults(substring, 1);
         Iterator<Result> iterator = result.iterator();
         return iterator.hasNext()? iterator.next():null;
     }
@@ -171,11 +171,15 @@ public class Text {
         return position;
     }
 
-    private Collection<Result> getResults(CharSequence substring, int radius, int count){
+    private Collection<Result> getResults(CharSequence substring, int count, int radius){
         return search(substring,count).stream()
                 .map(s->getResult(s,substring.length(),getPrevPos(s,radius),getNextPos(s,substring.length()+radius)))
                 .collect(Collectors.toList());
         //return null;
+    }
+
+    private Collection<Result> getResults(CharSequence substring, int count){
+        return getResults(substring, count, 5);
     }
 
     private Result getResult(Position found, int substrLength, Position begin, Position end ){
