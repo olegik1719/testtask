@@ -35,6 +35,12 @@ public class Text {
     private final Position BEGIN_TEXT;
     private final Position END_TEXT;
 
+    /**
+     * Создает запись Текст:
+     * @param inputStream -- считывает из потока
+     * @throws IOException -- возможен. Обрабатывается выше.
+     */
+
     public Text(InputStream inputStream) throws IOException {
         InputStreamReader reader = new InputStreamReader(inputStream);
         char[] buffer = new char[BUFFER_SIZE];
@@ -45,13 +51,13 @@ public class Text {
         do{
             readChars = reader.read(buffer);
             StringBuilder charSequence = text.get(text.size()-1);
-            if ((long) charSequence.length() + readChars > MAX_STRING_SIZE){
+            if (charSequence.length() + readChars > MAX_STRING_SIZE){
                 charSequence = new StringBuilder();
                 text.add(charSequence);
             }
             if (readChars != -1) charSequence.append(buffer,0,readChars);
 
-            log.log(Level.FINE,"Readed: "+String.valueOf(buffer));
+            log.log(Level.FINE,"Readed: " + String.valueOf(buffer));
 
         }while (readChars == BUFFER_SIZE);
 
@@ -59,14 +65,32 @@ public class Text {
         END_TEXT = new Position(text.size()-1,text.get(text.size()-1).length()-1);
     }
 
+    /**
+     * Находит все вхождения строки в тексте
+     * @param substring -- строка, которую ищем
+     * @return возвращает Список результатов -- перед подстрокой, подстроку, послеподстроки
+     */
+
     public Collection<Result> findAll(CharSequence substring){
         return getResults(substring, -1);
     }
+
+    /**
+     * Находит первые несколько вхождений строки в тексте
+     * @param substring -- строка, которую ищем
+     * @param num -- количество результатов, которые нам нужны
+     * @return возвращает Список результатов -- перед подстрокой, подстроку, послеподстроки
+     */
 
     public Collection<Result> findFirsts(CharSequence substring, int num){
         return getResults(substring, num);
     }
 
+    /**
+     * Находит первое вхождение строки в тексте
+     * @param substring -- строка, которую ищем
+     * @return результат -- перед подстрокой, подстроку, послеподстроки
+     */
     public Result findFirst(CharSequence substring){
         Collection<Result> result = getResults(substring, 1);
         Iterator<Result> iterator = result.iterator();
@@ -78,10 +102,22 @@ public class Text {
         return findFirst(substring) != null;
     }
 
+    /**
+     * Главный поисковик. На данный момент использует простейший способ поиска подстроки.
+     * @param substring -- строка для поиска.
+     * @param count -- количество для поиска. Если меньше или равно нулю, ищет все.
+     * @return Список Позиций начала подстроки в строке.
+     */
+
     private Collection<Position> search(CharSequence substring, int count){
         return simpleSearch(substring,count);
     }
 
+    /**
+     * Две следующие процедуры -- перемещают курсор по тексту на один символ.
+     * @param position изначальная позиция
+     * @return смещение влево или вправо
+     */
     private Position getNextPos(Position position){
         int currentString = position.getNumString();
         int posInString = position.getPosInString();
@@ -108,6 +144,38 @@ public class Text {
         return position;
     }
 
+    /**
+     * Две следующие процедуры -- перемещают курсор по тексту на заданное количество символов.
+     * @param position изначальная позиция
+     * @param count величина смещения
+     * @return смещение влево или вправо
+     */
+    private Position getNextPos(Position position, int count){
+        //TODO without loop Algorithm
+
+        for (int i = 0; i < count && !isEndText(position); i++) {
+            position = getNextPos(position);
+        }
+
+        return position;
+    }
+
+    private Position getPrevPos(Position position, int count){
+        //TODO without loop Algorithm
+
+        for (int i = 0; i < count && !isBeginText(position); i++) {
+            position = getPrevPos(position);
+        }
+
+        return position;
+    }
+
+
+    /**
+     * Две следующие процедуры -- проверяют, указывает ли позиция на конец текста.
+     * @param position позиция для проверки
+     * @return является ли позиция концом или началом текста
+     */
     private boolean isEndText(Position position){
         return position.equals(END_TEXT);
     }
@@ -116,7 +184,13 @@ public class Text {
         return position.equals(BEGIN_TEXT);
     }
 
-    private Collection<Position> simpleSearch(CharSequence substring, int count) throws RuntimeException{
+    /**
+     * Реализует алгоритм простого поиска.
+     * @param substring -- строка для поиска
+     * @param count -- количество элементов, которые надо найти
+     * @return коллекцию позиций начала строки
+     */
+    private Collection<Position> simpleSearch(CharSequence substring, int count){
         Collection<Position> result;
 
         if (count <= 0){
@@ -168,37 +242,45 @@ public class Text {
         return currentString.charAt(posInString);
     }
 
-    private Position getNextPos(Position position, int count){
-        //TODO without loop Algorithm
-
-        for (int i = 0; i < count && !isEndText(position); i++) {
-            position = getNextPos(position);
-        }
-
-        return position;
-    }
-
-    private Position getPrevPos(Position position, int count){
-        //TODO without loop Algorithm
-
-        for (int i = 0; i < count && !isBeginText(position); i++) {
-            position = getPrevPos(position);
-        }
-
-        return position;
-    }
-
+    /**
+     * Возвращает результат поиска в виде результата:
+     * Перед искомой строкой, строку, после искомой строки
+     * @param substring -- строка поиска;
+     * @param count -- необходимое количество резульатов
+     * @param radius -- величина префикса и постфикса для окружения
+     * @return коллекцию резульатов
+     */
     private Collection<Result> getResults(CharSequence substring, int count, int radius){
         return search(substring,count).stream()
-                .map(s->getResult(s,substring.length(),getPrevPos(s,radius),getNextPos(s,substring.length()+radius)))
+                .map(position -> getResult(
+                        position,
+                        substring.length(),
+                        getPrevPos(position,radius),
+                        getNextPos(position,substring.length()+radius))
+                )
                 .collect(Collectors.toList());
         //return null;
     }
 
+    /**
+     * То же, что и выше, но размер радиуса задан. 5
+     * @param substring подстрока
+     * @param count количество
+     * @return коллекция результатов
+     */
     private Collection<Result> getResults(CharSequence substring, int count){
         return getResults(substring, count, 5);
     }
 
+    /**
+     * Процедура создания результата
+     * @param found -- позиция, на которой начинается подстрока
+     * @param substrLength -- длина подстроки
+     * @param begin -- позиция, на которой начинается результат, префикс
+     * @param end -- позиция, на которой заканчивается результат, постфикс.
+     * @return возвращает результат.
+     */
+    //TODO слишком много параметров. Пожно сократить до 3х
     private Result getResult(Position found, int substrLength, Position begin, Position end ){
         StringBuilder prefix = new StringBuilder();
         StringBuilder substring = new StringBuilder();
@@ -246,10 +328,17 @@ public class Text {
         return result;
     }
 
+    /**
+     * Метод, возвращающий первые 10 символов текста
+     */
     public CharSequence getBegin(){
         return getBegin(10);
     }
 
+    /**
+     * Преобразует Текст в поток байт
+     * @return поток.
+     */
     public ByteArrayOutputStream getText(){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
