@@ -188,6 +188,11 @@ public class ConsoleApp {
             mainOS.println("Search: " + full);
             String substring = getOther(full);
             log.log(Level.FINE, "cmd: search substring: " + substring);
+            if (substring.length()<3){
+                mainOS.println("Substring length must be more 2!");
+                log.log(Level.INFO,"Search stopped. Substring length must be more 2!");
+                return;
+            }
             Map<CharSequence, Collection<Result>> result = store.searchAll(substring);
 
             if (result.isEmpty()) {
@@ -269,7 +274,11 @@ public class ConsoleApp {
                 }
             } else {
                 log.log(Level.INFO, "list, look for: \"" + substring + "\"");
-
+                if (substring.length()<3){
+                    mainOS.println("Substring length must be more 2!");
+                    log.log(Level.INFO,"Search stopped. Substring length must be more 2!");
+                    return;
+                }
                 if (!store.isEmpty()) {
                     Collection<CharSequence> result = store.contains(substring);
 
