@@ -7,13 +7,14 @@ import java.util.*;
 
 public class Store{
 
-    //private List<Text> store;
-    private Map<Integer,Text> store;
-    private int last = 0;
+    private ArrayList<Text> store;
+    //private Map<Integer,Text> store;
+    //private int last = 0;
 
 
     public Store(){
-        store = new HashMap<>();
+        //store = new HashMap<>();
+        store = new ArrayList<>();
     }
 
     public int addToStore(InputStream is) {
@@ -30,13 +31,15 @@ public class Store{
     }
 
     synchronized private int addToStore(Text text){
-        store.put(last,text);
-        return last++;
+        store.add(text);
+        return store.size();
     }
 
     public Map<CharSequence, Collection<Result>> searchAll(CharSequence substring) {
         Map<CharSequence, Collection<Result>> result = new HashMap<>();
-        for (int key:store.keySet()){
+        int count = store.size();
+        //for (int key:store.keySet()){
+        for (int key=0;key<count;key++){
             Collection<Result> keyResult = store.get(key).findAll(substring);
             if (!keyResult.isEmpty()){
                 result.put(new StringBuilder(""+key+": ").append(store.get(key).getBegin()),keyResult);
@@ -49,7 +52,9 @@ public class Store{
 
     public Map<CharSequence, Result> searchFirst(CharSequence substring) {
         Map<CharSequence, Result> result = new HashMap<>();
-        for (int key:store.keySet()){
+        //for (int key:store.keySet()){
+        int count = store.size();
+        for (int key=0;key<count;key++){
             Result keyResult = store.get(key).findFirst(substring);
             if (keyResult != null){
                 result.put(new StringBuilder(""+key+": ").append(store.get(key).getBegin()),keyResult);
@@ -62,7 +67,9 @@ public class Store{
 
     public Map<CharSequence, Collection<Result>> searchFirsts(CharSequence substring, int num) {
         Map<CharSequence, Collection<Result>> result = new HashMap<>();
-        for (int key:store.keySet()){
+        //for (int key:store.keySet()){
+        int count = store.size();
+        for (int key=0;key<count;key++){
             Collection<Result> keyResult = store.get(key).findFirsts(substring, num);
             if (!keyResult.isEmpty()){
                 result.put(new StringBuilder(""+key+": ").append(store.get(key).getBegin()),keyResult);
