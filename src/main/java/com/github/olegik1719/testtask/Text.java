@@ -16,6 +16,7 @@ public class Text {
 
     private static final Logger log = Logger.getLogger(Text.class.getName());
     static {
+
         try {
             FileHandler fh = new FileHandler(Text.class.getName() + ".log");
             log.addHandler(fh);
@@ -25,6 +26,7 @@ public class Text {
         }catch (IOException e){
             e.printStackTrace();
         }
+
     }
 
     private static final int BUFFER_SIZE = 1024;
@@ -39,6 +41,7 @@ public class Text {
         text = new ArrayList<>();
         text.add(new StringBuilder());
         int readChars;
+
         do{
             readChars = reader.read(buffer);
             StringBuilder charSequence = text.get(text.size()-1);
@@ -51,6 +54,7 @@ public class Text {
             log.log(Level.FINE,"Readed: "+String.valueOf(buffer));
 
         }while (readChars == BUFFER_SIZE);
+
         BEGIN_TEXT = new Position(0,0);
         END_TEXT = new Position(text.size()-1,text.get(text.size()-1).length()-1);
     }
@@ -66,6 +70,7 @@ public class Text {
     public Result findFirst(CharSequence substring){
         Collection<Result> result = getResults(substring, 1);
         Iterator<Result> iterator = result.iterator();
+
         return iterator.hasNext()? iterator.next():null;
     }
 
@@ -113,22 +118,26 @@ public class Text {
 
     private Collection<Position> simpleSearch(CharSequence substring, int count) throws RuntimeException{
         Collection<Position> result;
+
         if (count <= 0){
             result = new ArrayList<>();
             count = Integer.MAX_VALUE;
         }else {
             result = new ArrayList<>(count + 1);
         }
+
         if (substring.length() < 3) {
             //throw new RuntimeException("Length for search must be more than 3!");
             log.log(Level.WARNING, " Length for search must be more than 2! ");
             return result;
         }
+
         for (int i = 0; i < text.size() && result.size() < count ; i++) {
             for (int j = 0; j < text.get(i).length() && result.size() < count; j++){
 
                 Position currentPosition = new Position(i,j);
                 int k = 0;
+
                 while (k < substring.length()
                         && !isEndText(currentPosition)
                         && charAt(currentPosition) == substring.charAt(k)){
@@ -141,6 +150,7 @@ public class Text {
                 }
             }
         }
+
         return result;
     }
 
@@ -149,25 +159,32 @@ public class Text {
     }
 
     private int charAt(int numString, int posInString){
+
         if (numString >= text.size()) return -1;
         StringBuilder currentString = text.get(numString);
+
         if (posInString >= currentString.length()) return -1;
+
         return currentString.charAt(posInString);
     }
 
     private Position getNextPos(Position position, int count){
         //TODO without loop Algorithm
+
         for (int i = 0; i < count && !isEndText(position); i++) {
             position = getNextPos(position);
         }
+
         return position;
     }
 
     private Position getPrevPos(Position position, int count){
         //TODO without loop Algorithm
+
         for (int i = 0; i < count && !isBeginText(position); i++) {
             position = getPrevPos(position);
         }
+
         return position;
     }
 
@@ -189,18 +206,24 @@ public class Text {
         int printed = -1;
         StringBuilder result = prefix;
         Position current = begin;
+
         while (!current.equals(end)){
+
             if (printed == substrLength){
                 result = postfix;
             }
+
             if (current.equals(found)){
                 result=substring;
                 printed++;
             }
+
             result.append((char)charAt(current));
+
             if (printed > -1 && printed < substrLength + 1){
                 printed++;
             }
+
             current = getNextPos(current);
         }
         return new Result(prefix,substring, postfix);
@@ -209,14 +232,17 @@ public class Text {
     public CharSequence getBegin(int count){
         Position current = BEGIN_TEXT;
         StringBuilder result = new StringBuilder(count);
+
         while (count > 0 && !isEndText(current)){
             result.append((char) charAt(current));
             count--;
             current = getNextPos(current);
         }
+
         if (count == 0 && !isEndText(current)){
             result.append("...");
         }
+
         return result;
     }
 
@@ -226,14 +252,18 @@ public class Text {
 
     public ByteArrayOutputStream getText(){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
         try {
             for (StringBuilder sb: text) {
                 outputStream.write(sb.toString().getBytes());
             }
+            return outputStream;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.log(Level.SEVERE, "IOException " + e.getMessage());
+            return null;
         }
-        return outputStream;
+
+
     }
 
 
@@ -258,14 +288,14 @@ public class Text {
 
         @Override
         public boolean equals(Object o){
-            return o instanceof Position
+            return o != null && o instanceof Position
                     && ((Position) o).numString == numString
                     && ((Position) o).posInString == posInString
                     ;
         }
 
         private boolean equals(Position o){
-            return  o.numString == numString
+            return o != null &&  o.numString == numString
                  && o.posInString == posInString
                  ;
         }

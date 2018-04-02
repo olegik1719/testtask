@@ -14,6 +14,7 @@ public class ConsoleApp {
     private static PrintStream mainOS = System.out;
     private static InputStream mainIS = System.in;
     private static final Logger log = Logger.getLogger(ConsoleApp.class.getName());
+
     static {
         try {
             FileHandler fh = new FileHandler(ConsoleApp.class.getName() + ".log");
@@ -21,43 +22,53 @@ public class ConsoleApp {
             log.setLevel(Level.ALL);
             fh.setFormatter(new SimpleFormatter());
             log.setUseParentHandlers(false);
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-        //mainIS = System.in;
+
         Scanner sc = new Scanner(mainIS);
-        //mainOS = System.out;
         store = new Store();
         help();
-        while (true){
+
+        while (true) {
             mainOS.print("Get task for application: ");
             String task = sc.nextLine();
-            if (task.isEmpty()){
-                log.log(Level.INFO,"cmd: empty string");
+
+            if (task.isEmpty()) {
+                log.log(Level.INFO, "cmd: empty string");
                 help();
-            }else{
+            } else {
                 switch (task.charAt(0)) {
-                    case '+': upload(task.substring(1));
+                    case '+':
+                        upload(task.substring(1));
                         break;
-                    case '?': search(task.substring(1));
+                    case '?':
+                        search(task.substring(1));
                         break;
-                    case '-': download(task.substring(1));
+                    case '-':
+                        download(task.substring(1));
                         break;
-                    case 'l': list(task.substring(1));
+                    case 'l':
+                        list(task.substring(1));
                         break;
-                    case 'h': help();
+                    case 'h':
+                        help();
                         break;
-                    case 'e': exit(); break;
-                    default : help();
+                    case 'e':
+                        exit();
+                        break;
+                    default:
+                        help();
                 }
             }
         }
+
     }
 
-    private static void help(){
+    private static void help() {
         mainOS.println("Usage:");
         mainOS.println("{+|-*|?*|l|e|h} <parameter(s)>:");
         mainOS.println("+ -- upload file to base. Parameter is path to file");
@@ -66,7 +77,6 @@ public class ConsoleApp {
         mainOS.println("Example: -3 fileDownload.txt");
         mainOS.println("?* -- search in files. \n\t? -- return all (up to MAXINT) results.");
         mainOS.println("\t  ?<int> return first <int> results");
-        //mainOS.println("\t  ?? return all (up to MAXINT) results.");
         mainOS.println("1 parameter: substring");
         mainOS.println("Examples:\n\t?1 substring\n\t\t -- Search first result");
         mainOS.println("\t ?3 substring\n\t\t -- Search 3 first results");
@@ -78,218 +88,233 @@ public class ConsoleApp {
         mainOS.println("h -- show this message. Without parameters.");
     }
 
-    private static void upload(String full){
+    private static void upload(String full) {
+
         if (full.length() == 0) {
-            log.log(Level.INFO,"cmd: upload; without parameters");
+            log.log(Level.INFO, "cmd: upload; without parameters");
             help();
             return;
         }
-        log.log(Level.INFO,"cmd: upload; parameters: " + full);
+
+        log.log(Level.INFO, "cmd: upload; parameters: " + full);
+
         if (full.charAt(0) == ' ') {
             File file = new File(full.substring(1));
             int index;
+
             try {
                 index = store.addToStore(new FileInputStream(file));
                 if (index < 0) {
                     mainOS.println("File found, but not stored: " + file.getPath());
-                    log.log(Level.WARNING,"File found, but not stored: " + file.getPath());
+                    log.log(Level.WARNING, "File found, but not stored: " + file.getPath());
                 } else {
                     mainOS.println("Upload: " + index + " " + file.getPath());
-                    log.log(Level.FINE,"Upload: " + index + " " + file.getPath());
+                    log.log(Level.FINE, "Upload: " + index + " " + file.getPath());
                 }
             } catch (FileNotFoundException e) {
                 mainOS.println("File not found: " + file.getPath());
-                log.log(Level.WARNING,"File not found: " + file.getPath());
+                log.log(Level.WARNING, "File not found: " + file.getPath());
             }
-        }else {
+
+        } else {
             help();
         }
     }
 
-    private static void download(String full){
+    private static void download(String full) {
+
         if (full.length() == 0) {
-            log.log(Level.INFO,"cmd: download; without parameters");
+            log.log(Level.INFO, "cmd: download; without parameters");
             help();
             return;
         }
-        log.log(Level.INFO,"cmd: download; parameters: " + full);
-        //if (full.charAt(0) == ' ') {
-            //mainOS.println("Download: " + full);
-            String digit = getFirstParam(full);
-            try {
-                int text = Integer.parseInt(digit);
-                String path = getOther(full);
-                File output = new File(path);
-                ByteArrayOutputStream textStream = store.getFromStore(text);
-                if (textStream == null){
-                    mainOS.println("Text " + text + " does not exist!");
-                    log.log(Level.INFO, "Text " + text + " does not exist!");
-                    help();
-                    return;
+
+        log.log(Level.INFO, "cmd: download; parameters: " + full);
+        String digit = getFirstParam(full);
+
+        try {
+            int text = Integer.parseInt(digit);
+            String path = getOther(full);
+            File output = new File(path);
+            ByteArrayOutputStream textStream = store.getFromStore(text);
+
+            if (textStream == null) {
+                mainOS.println("Text " + text + " does not exist!");
+                log.log(Level.INFO, "Text " + text + " does not exist!");
+                help();
+                return;
+            }
+
+            if (output.createNewFile()) {
+                try (OutputStream fileStream = new FileOutputStream(output)) {
+                    textStream.writeTo(fileStream);
                 }
-                if (output.createNewFile()) {
-                    try (OutputStream fileStream = new FileOutputStream(output)){
-                        textStream.writeTo(fileStream);
-                        fileStream.close();
-                    }
-                }else {
-                    mainOS.println("File " + path + " exists!");
-                    log.log(Level.INFO, "File " + path + " exists!");
-                    help();
-                }
-                textStream.close();
-            }catch (NumberFormatException e){
-                mainOS.println("It isn't right number of text");
-                log.log(Level.INFO, "It isn't right number of text");
-                help();
-            } catch (FileNotFoundException e) {
-                mainOS.println("File not found");
-                log.log(Level.SEVERE, "FileNotFoundException " + e.getMessage());
-                help();
-            } catch (IOException e) {
-                mainOS.println("I/O exception");
-                log.log(Level.SEVERE, "I/O exception " + e.getMessage());
-                help();
-            } catch (NullPointerException e){
-                mainOS.println("Check input parameters. ");
-                log.log(Level.SEVERE, "NullPointerException " + e.getMessage());
+            } else {
+                mainOS.println("File " + path + " exists!");
+                log.log(Level.INFO, "File " + path + " exists!");
                 help();
             }
-//        }else {
-//            help();
-//        }
+            textStream.close();
+        } catch (NumberFormatException e) {
+            mainOS.println("It isn't right number of text");
+            log.log(Level.INFO, "It isn't right number of text");
+            help();
+        } catch (FileNotFoundException e) {
+            mainOS.println("File not found");
+            log.log(Level.SEVERE, "FileNotFoundException " + e.getMessage());
+            help();
+        } catch (IOException e) {
+            mainOS.println("I/O exception");
+            log.log(Level.SEVERE, "I/O exception " + e.getMessage());
+            help();
+        } catch (NullPointerException e) {
+            mainOS.println("Check input parameters. ");
+            log.log(Level.SEVERE, "NullPointerException " + e.getMessage());
+            help();
+        }
     }
 
-    private static void search(String full){
+    private static void search(String full) {
+
         if (full.length() == 0) {
-            log.log(Level.INFO,"cmd: search; without parameters");
+            log.log(Level.INFO, "cmd: search; without parameters");
             help();
             return;
         }
-        log.log(Level.INFO,"cmd: search; parameters: " + full);
 
-        if (full.charAt(0) == ' '){
+        log.log(Level.INFO, "cmd: search; parameters: " + full);
+
+        if (full.charAt(0) == ' ') {
             mainOS.println("Search: " + full);
-            //mainOS.println(full.subSequence(1,full.length()));
             String substring = getOther(full);
-            log.log(Level.FINE,"cmd: search substring: " + substring);
+            log.log(Level.FINE, "cmd: search substring: " + substring);
             Map<CharSequence, Collection<Result>> result = store.searchAll(substring);
-            if (result.isEmpty()){
-                log.log(Level.WARNING,"Search result is empty for " + substring);
+
+            if (result.isEmpty()) {
+                log.log(Level.WARNING, "Search result is empty for " + substring);
                 mainOS.println("Search result is empty for " + substring);
-            }else {
-                for (CharSequence key: result.keySet()){
+            } else {
+                for (CharSequence key : result.keySet()) {
                     Collection<Result> keyResult = result.get(key);
-                    if (keyResult != null && keyResult.size() > 0){
+                    if (keyResult != null && keyResult.size() > 0) {
                         mainOS.println(key + ":");
-                        for (Result keyres:keyResult){
+                        for (Result keyres : keyResult) {
                             mainOS.println(keyres);
                         }
                         mainOS.println();
                     }
                 }
             }
-        }else {
+
+        } else {
             String digit = getFirstParam(full);
-            //NumberFormatException
+
             try {
                 int count = Integer.parseInt(digit);
                 log.log(Level.FINE, "count = " + count);
                 String substring = getOther(full);
-                Map<CharSequence, Collection<Result>> result = store.searchFirsts(substring,count);
-                if (result.isEmpty()){
-                    log.log(Level.WARNING,"Search result is empty for " + substring);
+                Map<CharSequence, Collection<Result>> result = store.searchFirsts(substring, count);
+                if (result.isEmpty()) {
+                    log.log(Level.WARNING, "Search result is empty for " + substring);
                     mainOS.println("Search result is empty for " + substring);
-                }else {
-                    for (CharSequence key: result.keySet()){
+                } else {
+                    for (CharSequence key : result.keySet()) {
                         Collection<Result> keyResult = result.get(key);
-                        if (keyResult != null && keyResult.size() > 0){
+                        if (keyResult != null && keyResult.size() > 0) {
                             mainOS.println(key + ":");
-                            for (Result keyRes:keyResult){
+                            for (Result keyRes : keyResult) {
                                 System.out.println(keyRes);
                             }
                         }
                     }
                 }
-            }catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 mainOS.println("It isn't right number");
                 log.log(Level.INFO, "It isn't right number");
                 help();
             }
-
-            //mainOS.println("Search: " + full);
         }
 
     }
 
-    private static void list(String full){
+    private static void list(String full) {
+
         if (full.length() == 0) {
             //help();
-            log.log(Level.INFO,"cmd: list; without parameters");
+            log.log(Level.INFO, "cmd: list; without parameters");
             if (!store.isEmpty()) {
                 mainOS.println("Texts in store:");
                 store.list().forEach(mainOS::println);
-            }else {
+            } else {
                 mainOS.println("Store is empty now!");
-                log.log(Level.WARNING,"Store is empty now!");
+                log.log(Level.WARNING, "Store is empty now!");
             }
             return;
         }
-        log.log(Level.INFO,"cmd: list; parameters: " + full);
-        if (full.charAt(0) == ' '){
+
+        log.log(Level.INFO, "cmd: list; parameters: " + full);
+
+        if (full.charAt(0) == ' ') {
             String substring = getOther(full);
+
             if (substring.length() == 0) {
-                log.log(Level.INFO,"list, substring is empty");
+                log.log(Level.INFO, "list, substring is empty");
+
                 if (!store.isEmpty()) {
                     mainOS.println("Texts in store:");
                     store.list().forEach(mainOS::println);
-                }else {
+                } else {
                     mainOS.println("Store is empty now!");
-                    log.log(Level.WARNING,"Store is empty now!");
+                    log.log(Level.WARNING, "Store is empty now!");
                 }
-            }else {
-                log.log(Level.INFO,"list, look for: \"" + substring + "\"");
+            } else {
+                log.log(Level.INFO, "list, look for: \"" + substring + "\"");
+
                 if (!store.isEmpty()) {
                     Collection<CharSequence> result = store.contains(substring);
+
                     if (!result.isEmpty()) {
                         mainOS.println("Texts in store:");
                         result.forEach(mainOS::println);
-                        log.log(Level.INFO,"Found: " + result.size() + " texts.");
-                    }else{
-                        mainOS.println("Substring \"" + substring + "\" isn't found in texts!" );
-                        log.log(Level.WARNING,"Substring \"" + substring + "\" isn't found in texts!" );
+                        log.log(Level.INFO, "Found: " + result.size() + " texts.");
+                    } else {
+                        mainOS.println("Substring \"" + substring + "\" isn't found in texts!");
+                        log.log(Level.WARNING, "Substring \"" + substring + "\" isn't found in texts!");
                     }
-                }else {
+
+                } else {
                     mainOS.println("Store is empty now!");
-                    log.log(Level.WARNING,"Store is empty now!");
+                    log.log(Level.WARNING, "Store is empty now!");
                 }
             }
-        }else{
+
+        } else {
             help();
         }
-        //mainOS.println("list: " + full);
     }
 
-    private static void exit (){
+    private static void exit() {
         mainOS.println("Exit... ");
         log.log(Level.INFO, "Exit");
         System.exit(0);
     }
 
 
-
-    private static String getFirstParam(String parameters){
+    private static String getFirstParam(String parameters) {
         int border = parameters.indexOf(' ');
+
         if (border == -1) return parameters;
-        return parameters.substring(0,border);
+
+        return parameters.substring(0, border);
     }
 
-    private static String getOther(String parameters){
+    private static String getOther(String parameters) {
         String first = getFirstParam(parameters);
+
         try {
             return parameters.substring(first.length() + 1);
-        }catch (StringIndexOutOfBoundsException e){
-            log.log(Level.WARNING, "getOther. input: " + parameters +" StringIndexOutOfBoundsException");
+        } catch (StringIndexOutOfBoundsException e) {
+            log.log(Level.WARNING, "getOther. input: " + parameters + " StringIndexOutOfBoundsException");
             return null;
         }
 
